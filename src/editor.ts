@@ -49,11 +49,24 @@ class Editor {
 		this.context = canvas.getContext("2d");
 		if (!this.context) {
 			ERROR_CONTEXT_NOT_FOUND();
+			return;
 		}
 
 		this.text.add(Editor.defaultText);
 		this.attachEventListeners();
 		this.setFont(this.font);
+
+		this.setBackground();
+	}
+
+	public setBackground(fillColor = "black") {
+		if (!this.context) {
+			ERROR_CONTEXT_NOT_FOUND;
+			return;
+		}
+
+		this.context.fillStyle = fillColor;
+		this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
 	}
 
 	private handleEvent(event: Event) {
@@ -76,6 +89,9 @@ class Editor {
 		}
 	}
 
+	/**
+	 * @todo Also update text in dynamic array
+	 */
 	private handleKeyPress(keyEvent: KeyboardEvent) {
 		const key = keyEvent.key;
 
@@ -85,7 +101,7 @@ class Editor {
 		}
 		
 		if (isPrintableCharacter(key)) {
-			this.context.fillText(key, this.horizontalMeter, 50);
+			this.context.fillText(key, this.horizontalMeter, 10);
 			this.horizontalMeter += this.context.measureText(key).width;
 		}
 	}
@@ -97,6 +113,7 @@ class Editor {
 		}
 
 		this.canvas.addEventListener("keypress", (e) => {
+			e.preventDefault()
 			const event = new Event(EventType.KeyPress, e);
 			this.handleEvent(event);
 		});

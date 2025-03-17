@@ -1,6 +1,6 @@
 
 class Font {
-    public sizeInPixels: number = 10;
+    public sizeInPixels: number = 14;
     public fontFamily: string = "serif";
     public fontColor: string = "white";
 
