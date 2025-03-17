@@ -3,8 +3,11 @@
 		=> Beware of accidently creating sparse arrays, they aren't stored as actual arrays sometimes. Sometimes they are stored as a hash table. If this happens then gap buffers are essentially useless. See https://medium.com/@kevinzifancheng/how-are-arrays-implemented-in-javascript-be925a7c8021
 */
 
+import { ERROR_CONTEXT_NOT_FOUND } from "./asserts";
 import DynamicArray from "./DynamicArray";
 import Event, {EventType} from "./event";
+import { isPrintableCharacter } from "./utility";
+import Font from "./font";
 
 class TextContent {
 	private m_content: DynamicArray;
@@ -36,18 +39,21 @@ class Editor {
 	private canvas: HTMLCanvasElement;
 	private text: TextContent; 
 	private context: CanvasRenderingContext2D | null;
+	private font: Font = new Font();
 	public static defaultText = "Hello world";
+	private horizontalMeter = 0;
 
 	constructor(canvas: HTMLCanvasElement) {
 		this.canvas = canvas;
 		this.text = new TextContent();
 		this.context = canvas.getContext("2d");
 		if (!this.context) {
-			console.error("Failed to get 2d context from canvas");
+			ERROR_CONTEXT_NOT_FOUND();
 		}
 
 		this.text.add(Editor.defaultText);
 		this.attachEventListeners();
+		this.setFont(this.font);
 	}
 
 	private handleEvent(event: Event) {
@@ -72,11 +78,15 @@ class Editor {
 
 	private handleKeyPress(keyEvent: KeyboardEvent) {
 		const key = keyEvent.key;
+
+		if (!this.context) {
+			ERROR_CONTEXT_NOT_FOUND();
+			return;
+		}
 		
-		if (this.context) {
-			this.context.font = "16px serif";
-			this.context.fillStyle = "white";
-			this.context.fillText(key, 10, 50);
+		if (isPrintableCharacter(key)) {
+			this.context.fillText(key, this.horizontalMeter, 50);
+			this.horizontalMeter += this.context.measureText(key).width;
 		}
 	}
 
@@ -90,6 +100,17 @@ class Editor {
 			const event = new Event(EventType.KeyPress, e);
 			this.handleEvent(event);
 		});
+	}
+
+	public setFont(font: Font) {
+		if (!this.context) {
+			ERROR_CONTEXT_NOT_FOUND();
+			return;
+		}
+
+		this.font = font;
+		this.context.font = `${this.font.sizeInPixels}px ${this.font.fontFamily}`;
+		this.context.fillStyle = `${this.font.fontColor}`;
 	}
 }
 
