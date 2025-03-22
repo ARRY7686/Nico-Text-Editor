@@ -3,11 +3,11 @@
 		=> Beware of accidently creating sparse arrays, they aren't stored as actual arrays sometimes. Sometimes they are stored as a hash table. If this happens then gap buffers are essentially useless. See https://medium.com/@kevinzifancheng/how-are-arrays-implemented-in-javascript-be925a7c8021
 */
 
-import { ERROR_CONTEXT_NOT_FOUND } from "./asserts";
-import DynamicArray from "./DynamicArray";
-import Event, {EventType} from "./event";
-import { isPrintableCharacter } from "./utility";
-import Font from "./font";
+import { ERROR_CONTEXT_NOT_FOUND } from "./utility/asserts";
+import DynamicArray from "./data-structures/DynamicArray";
+import Event, {EventType} from "./core/event";
+import { isPrintableCharacter } from "./utility/utility";
+import Font from "./ui/font";
 
 class TextContent {
 	private m_content: DynamicArray;
@@ -35,6 +35,11 @@ class TextContent {
 	}
 }
 
+export interface Dimensions2D {
+	width: number,
+	height: number,
+}
+
 class Editor {
 	private canvas: HTMLCanvasElement;
 	private text: TextContent; 
@@ -42,9 +47,12 @@ class Editor {
 	private font: Font = new Font();
 	public static defaultText = "Hello world";
 	private horizontalMeter = 0;
+	private size: Dimensions2D;
+	private scale: number = window.devicePixelRatio;
 
-	constructor(canvas: HTMLCanvasElement) {
+	constructor(canvas: HTMLCanvasElement, size: Dimensions2D) {
 		this.canvas = canvas;
+		this.size = size;
 		this.text = new TextContent();
 		this.context = canvas.getContext("2d");
 		if (!this.context) {
@@ -55,6 +63,9 @@ class Editor {
 		this.text.add(Editor.defaultText);
 		this.attachEventListeners();
 		this.setFont(this.font);
+
+		canvas.width = Math.floor(this.size.width * this.scale); 
+        canvas.height = Math.floor(this.size.height * this.scale);
 
 		this.setBackground();
 	}
@@ -101,7 +112,8 @@ class Editor {
 		}
 		
 		if (isPrintableCharacter(key)) {
-			this.context.fillText(key, this.horizontalMeter, 10);
+			const charSize = this.context.measureText(key);
+			this.context.fillText(key, this.horizontalMeter, charSize.fontBoundingBoxAscent);
 			this.horizontalMeter += this.context.measureText(key).width;
 		}
 	}

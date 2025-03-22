@@ -1,4 +1,4 @@
-import { ASSERT_ONLY_ASCII_ALLOWED } from "./asserts";
+import { ASSERT_ONLY_ASCII_ALLOWED } from "../utility/asserts";
 
 /** 
 	* Stores fixed size continuous buffer of 8 byte uint

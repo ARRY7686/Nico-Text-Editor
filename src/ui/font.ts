@@ -4,7 +4,7 @@ class Font {
     public fontFamily: string = "serif";
     public fontColor: string = "white";
 
-    constructor(sizeInPixels = 14, fontFamily = "serif", fontColor = "white") {
+    constructor(sizeInPixels = 29, fontFamily = "serif", fontColor = "white") {
         this.sizeInPixels = sizeInPixels;
         this.fontFamily = fontFamily;
         this.fontColor = fontColor;
