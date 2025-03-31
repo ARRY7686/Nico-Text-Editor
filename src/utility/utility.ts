@@ -15,3 +15,7 @@ export interface Pos2D {
     x: number,
     y: number,
 }
+
+export enum CanvasType {
+  MainCanvas, TextCanvas
+}
