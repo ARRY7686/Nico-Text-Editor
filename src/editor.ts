@@ -39,7 +39,7 @@ class Editor {
   private text: TextContent;
   private font: Font = new Font();
   public static defaultText = "Hello world";
-  private textCanvasContext: CanvasRenderingContext2D;
+//   private textCanvasContext: CanvasRenderingContext2D;
   private textCanvas: TextCanvas;
   private mainCanvas: HTMLCanvasElement;
   private mainCanvasContext: CanvasRenderingContext2D;
@@ -73,7 +73,7 @@ class Editor {
     const _canvas = this.createCanvas(CanvasType.TextCanvas);
     this.textCanvas = new TextCanvas(_canvas, size);
     this.textCanvas.setBackground();
-    this.textCanvasContext = this.textCanvas.getContext();
+    // this.textCanvasContext = this.textCanvas.getContext();
 
     this.text.add(Editor.defaultText);
     this.attachEventListeners();
@@ -118,6 +118,9 @@ class Editor {
     } else if (key === "Enter") {
       this.textCanvas.moveToNewLine();
     }
+	else if (key === "Backspace") {
+	  this.textCanvas.removeChar();
+	}
   }
 
   private attachEventListeners() {
@@ -127,7 +130,13 @@ class Editor {
       const event = new Event(EventType.KeyPress, e);
       this.handleEvent(event);
     });
-  }
+	this.containerDiv.addEventListener("keydown", (e) => {
+	  e.preventDefault()
+	  const event = new Event(EventType.KeyPress, e);
+	  this.handleEvent(event);
+	});
+}
+
 
   public setFont(font: Font) {
     this.textCanvas.setFont(font);
