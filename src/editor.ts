@@ -39,7 +39,7 @@ class Editor {
   private text: TextContent;
   private font: Font = new Font();
   public static defaultText = "Hello world";
-//   private textCanvasContext: CanvasRenderingContext2D;
+  //   private textCanvasContext: CanvasRenderingContext2D;
   private textCanvas: TextCanvas;
   private mainCanvas: HTMLCanvasElement;
   private mainCanvasContext: CanvasRenderingContext2D;
@@ -65,10 +65,12 @@ class Editor {
     this.text = new TextContent();
 
     this.mainCanvas = this.createCanvas(CanvasType.MainCanvas);
-    this.mainCanvasContext = this.mainCanvas.getContext('2d')!;
+    this.mainCanvasContext = this.mainCanvas.getContext("2d")!;
 
     this.mainCanvas.width = Math.floor(size.width * this.scale);
     this.mainCanvas.height = Math.floor(size.height * this.scale);
+    // this.mainCanvas.width = size.width;
+    // this.mainCanvas.height = size.height;
 
     const _canvas = this.createCanvas(CanvasType.TextCanvas);
     this.textCanvas = new TextCanvas(_canvas, size);
@@ -84,7 +86,12 @@ class Editor {
 
   public setBackground(fillColor = "black") {
     this.mainCanvasContext.fillStyle = fillColor;
-    this.mainCanvasContext.fillRect(0, 0, this.mainCanvas.width, this.mainCanvas.height);
+    this.mainCanvasContext.fillRect(
+      0,
+      0,
+      this.mainCanvas.width,
+      this.mainCanvas.height
+    );
   }
 
   private handleEvent(event: Event) {
@@ -93,7 +100,9 @@ class Editor {
         if (event.data instanceof KeyboardEvent) {
           this.handleKeyPress(event.data);
         } else {
-          console.error(`Event of type ${event.type} passed as a Keyboard Event.`);
+          console.error(
+            `Event of type ${event.type} passed as a Keyboard Event.`
+          );
         }
         break;
       case EventType.MouseClick:
@@ -117,26 +126,24 @@ class Editor {
       this.textCanvas.appendChar(key);
     } else if (key === "Enter") {
       this.textCanvas.moveToNewLine();
+    } else if (key === "Backspace") {
+      this.textCanvas.removeChar();
     }
-	else if (key === "Backspace") {
-	  this.textCanvas.removeChar();
-	}
   }
 
   private attachEventListeners() {
     console.log(this.containerDiv);
     this.containerDiv.addEventListener("keypress", (e) => {
-      e.preventDefault()
+      e.preventDefault();
       const event = new Event(EventType.KeyPress, e);
       this.handleEvent(event);
     });
-	this.containerDiv.addEventListener("keydown", (e) => {
-	  e.preventDefault()
-	  const event = new Event(EventType.KeyPress, e);
-	  this.handleEvent(event);
-	});
-}
-
+    this.containerDiv.addEventListener("keydown", (e) => {
+      e.preventDefault();
+      const event = new Event(EventType.KeyPress, e);
+      this.handleEvent(event);
+    });
+  }
 
   public setFont(font: Font) {
     this.textCanvas.setFont(font);

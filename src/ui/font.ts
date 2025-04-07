@@ -1,14 +1,17 @@
-
 class Font {
-    public sizeInPixels: number = 14;
-    public fontFamily: string = "serif";
-    public fontColor: string = "white";
+  public sizeInPixels: number = 80;
+  public fontFamily: string = "serif";
+  public fontColor: string = "white";
 
-    constructor(sizeInPixels = 29, fontFamily = "serif", fontColor = "white") {
-        this.sizeInPixels = sizeInPixels;
-        this.fontFamily = fontFamily;
-        this.fontColor = fontColor;
-    }
+  constructor(
+    sizeInPixels = 20,
+    fontFamily = "monospace",
+    fontColor = "white"
+  ) {
+    this.sizeInPixels = sizeInPixels;
+    this.fontFamily = fontFamily;
+    this.fontColor = fontColor;
+  }
 }
 
 export default Font;

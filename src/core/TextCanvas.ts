@@ -1,4 +1,8 @@
-import { isPrintableCharacter, Size2D } from "../utility/utility";
+import {
+  isPrintableCharacter,
+  Size2D,
+  ICharacterData,
+} from "../utility/utility";
 import { Cursor } from "../ui/cursor";
 import { ERROR_CONTEXT_NOT_FOUND } from "../utility/asserts";
 import Font from "../ui/font";
@@ -10,7 +14,7 @@ export class TextCanvas {
   private cursor: Cursor;
   private scale: number = window.devicePixelRatio;
   private font: Font;
-  private characterData:{x:number,y:number,width:number,height:number}[] = [];
+  private characterData: ICharacterData[] = [];
 
   constructor(canvas: HTMLCanvasElement, size: Size2D) {
     this.canvas = canvas;
@@ -20,10 +24,12 @@ export class TextCanvas {
 
     canvas.width = Math.floor(this.size.width * this.scale);
     canvas.height = Math.floor(this.size.height * this.scale);
+    // canvas.width = this.size.width;
+    // canvas.height = this.size.height;
 
     this.cursor = new Cursor({
       x: 0,
-      y: this.context.measureText('a').fontBoundingBoxAscent + 20,
+      y: this.context.measureText("j").actualBoundingBoxDescent,
     });
 
     this.font = new Font();
@@ -54,7 +60,9 @@ export class TextCanvas {
 
   public appendChar(character: string) {
     if (!isPrintableCharacter(character)) {
-      console.error(`Character ${character} is not printable or is not a valid character.`);
+      console.error(
+        `Character ${character} is not printable or is not a valid character.`
+      );
       return;
     }
 
@@ -64,33 +72,36 @@ export class TextCanvas {
     this.characterData.push({
       x,
       y,
-      width: charSize.width,
-      height: (charSize.actualBoundingBoxAscent) + (charSize.actualBoundingBoxDescent)
+      width: Math.ceil(charSize.width),
+      height: charSize.actualBoundingBoxDescent,
+      actualAscent: charSize.actualBoundingBoxAscent,
+      actualDescent: charSize.actualBoundingBoxDescent,
     });
     this.cursor.setPosition({
       x: x + charSize.width,
-      y
+      y,
     });
   }
   public removeChar() {
-    if (this.characterData.length === 0) {
-        console.warn("No characters to remove.");
-        return;
+    if (this.characterData.length <= 0) {
+      console.warn("No characters to remove.");
+      return;
     }
     const lastChar = this.characterData.pop()!;
+    console.log(lastChar);
     const { x, y, width, height } = lastChar;
-    this.context.clearRect(x, y - height, width, height);
+    this.context.clearRect(x, y, width, height);
     this.cursor.setPosition({
-        x: x,
-        y: y,
+      x: x,
+      y: y,
     });
-}
+  }
 
   public moveToNewLine() {
     const { y } = this.cursor.getPosition();
     this.cursor.setPosition({
       x: 0,
-      y: y + this.context.measureText('a').fontBoundingBoxAscent
+      y: y + this.context.measureText("a").fontBoundingBoxDescent,
     });
   }
 
@@ -98,5 +109,6 @@ export class TextCanvas {
     this.font = font;
     this.context.font = `${this.font.sizeInPixels}px ${this.font.fontFamily}`;
     this.context.fillStyle = `${this.font.fontColor}`;
+    this.context.textBaseline = "top";
   }
-};
+}
