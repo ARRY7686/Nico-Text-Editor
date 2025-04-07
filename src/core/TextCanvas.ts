@@ -10,6 +10,7 @@ export class TextCanvas {
   private cursor: Cursor;
   private scale: number = window.devicePixelRatio;
   private font: Font;
+  private characterData:{x:number,y:number,width:number,height:number}[] = [];
 
   constructor(canvas: HTMLCanvasElement, size: Size2D) {
     this.canvas = canvas;
@@ -60,11 +61,30 @@ export class TextCanvas {
     const { x, y } = this.cursor.getPosition();
     const charSize = this.context.measureText(character);
     this.context.fillText(character, x, y);
+    this.characterData.push({
+      x,
+      y,
+      width: charSize.width,
+      height: (charSize.actualBoundingBoxAscent) + (charSize.actualBoundingBoxDescent)
+    });
     this.cursor.setPosition({
       x: x + charSize.width,
       y
     });
   }
+  public removeChar() {
+    if (this.characterData.length === 0) {
+        console.warn("No characters to remove.");
+        return;
+    }
+    const lastChar = this.characterData.pop()!;
+    const { x, y, width, height } = lastChar;
+    this.context.clearRect(x, y - height, width, height);
+    this.cursor.setPosition({
+        x: x,
+        y: y,
+    });
+}
 
   public moveToNewLine() {
     const { y } = this.cursor.getPosition();
