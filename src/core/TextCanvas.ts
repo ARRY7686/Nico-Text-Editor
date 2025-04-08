@@ -34,6 +34,7 @@ export class TextCanvas {
 
     this.font = new Font();
     this.setFont(this.font);
+    this.renderCursor();
   }
 
   public setBackground(fillColor = "black") {
@@ -53,6 +54,11 @@ export class TextCanvas {
   public getCursor() {
     return this.cursor;
   }
+  public renderCursor(){
+    this.cursor.erase(this.context);
+
+    this.cursor.draw(this.context);
+  }
 
   public getRawCanvas() {
     return this.canvas;
@@ -68,7 +74,6 @@ export class TextCanvas {
 
     const { x, y } = this.cursor.getPosition();
     const charSize = this.context.measureText(character);
-    this.context.fillText(character, x, y);
     this.characterData.push({
       x,
       y,
@@ -81,6 +86,11 @@ export class TextCanvas {
       x: x + charSize.width,
       y,
     });
+    this.renderCursor();
+
+    this.context.fillText(character, x, y);
+
+
   }
   public removeChar() {
     if (this.characterData.length <= 0) {
@@ -95,6 +105,7 @@ export class TextCanvas {
       x: x,
       y: y,
     });
+    this.renderCursor();
   }
 
   public moveToNewLine() {
@@ -103,6 +114,7 @@ export class TextCanvas {
       x: 0,
       y: y + this.context.measureText("a").fontBoundingBoxDescent,
     });
+    this.renderCursor();
   }
 
   public setFont(font: Font) {
@@ -110,5 +122,45 @@ export class TextCanvas {
     this.context.font = `${this.font.sizeInPixels}px ${this.font.fontFamily}`;
     this.context.fillStyle = `${this.font.fontColor}`;
     this.context.textBaseline = "top";
+  }
+  public moveCursorLeft() {
+    const { x, y } = this.cursor.getPosition();
+    if (x > 0) {
+      this.cursor.setPosition({
+        x: x - this.characterData[this.characterData.length - 1].width,
+        y,
+      });
+    }
+    this.renderCursor();
+  }
+  public moveCursorRight() {
+    const { x, y } = this.cursor.getPosition();
+    if (x < this.canvas.width) {
+      this.cursor.setPosition({
+        x: x + this.characterData[this.characterData.length - 1].width,
+        y,
+      });
+    }
+    this.renderCursor();
+  }
+  public moveCursorUp() {
+    const { x, y } = this.cursor.getPosition();
+    if (y > 0) {
+      this.cursor.setPosition({
+        x,
+        y: y - this.font.sizeInPixels,
+      });
+    }
+    this.renderCursor();
+  }
+  public moveCursorDown() {
+    const { x, y } = this.cursor.getPosition();
+    if (y < this.canvas.height) {
+      this.cursor.setPosition({
+        x,
+        y: y + this.font.sizeInPixels,
+      });
+    }
+    this.renderCursor();
   }
 }
