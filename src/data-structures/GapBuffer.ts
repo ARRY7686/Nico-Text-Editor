@@ -52,15 +52,21 @@ class GapBuffer {
     DeleteForward() : void{
         if(this.end < this.n) this.end++;
     }
-
-    Get() : string{
-        let text = "";
-        for(let i = 0; i < this.start; i++){
-            text += this.buffer[i];
-        }
-        for(let i = this.end; i < this.n; i++){
-            text += this.buffer[i];
-        }
-        return text;
+    
+    Length() : number{
+        return this.n - (this.end - this.start);
     }
+
+    Get(pos: number) : string{
+        console.assert(pos >= 0 && pos < this.Length(), "GapBuffer Error: Index out of bounds");
+        if(pos < this.start) return this.buffer[pos];
+        return this.buffer[pos + this.end - this.start];
+    }
+
+    GetText(): string {
+        const preGap = this.buffer.slice(0, this.start).join('');
+        const postGap = this.buffer.slice(this.end, this.n).join('');
+        return preGap + postGap;
+    }
+    
 }
