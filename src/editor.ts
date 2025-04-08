@@ -128,6 +128,17 @@ class Editor {
       this.textCanvas.moveToNewLine();
     } else if (key === "Backspace") {
       this.textCanvas.removeChar();
+    }else if (key === "ArrowLeft") {
+      this.textCanvas.moveCursorLeft();
+    }
+    else if (key === "ArrowRight") {
+      this.textCanvas.moveCursorRight();
+    }
+    else if (key === "ArrowUp") {
+      this.textCanvas.moveCursorUp();
+    }
+    else if (key === "ArrowDown") {
+      this.textCanvas.moveCursorDown();
     }
   }
 
