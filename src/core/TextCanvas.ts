@@ -6,6 +6,7 @@ import {
 import { Cursor } from "../ui/cursor";
 import { ERROR_CONTEXT_NOT_FOUND } from "../utility/asserts";
 import Font from "../ui/font";
+import { GapBuffer, GapBufferTest } from "../data-structures/GapBuffer";
 
 export class TextCanvas {
   private canvas: HTMLCanvasElement;
@@ -15,8 +16,10 @@ export class TextCanvas {
   private scale: number = window.devicePixelRatio;
   private font: Font;
   private characterData: ICharacterData[] = [];
+  private gapBuffer: GapBuffer;
 
   constructor(canvas: HTMLCanvasElement, size: Size2D) {
+    this.gapBuffer = new GapBuffer();
     this.canvas = canvas;
     this.size = size;
 
@@ -54,7 +57,7 @@ export class TextCanvas {
   public getCursor() {
     return this.cursor;
   }
-  public renderCursor(){
+  public renderCursor() {
     this.cursor.erase(this.context);
 
     this.cursor.draw(this.context);
@@ -71,6 +74,8 @@ export class TextCanvas {
       );
       return;
     }
+
+    this.gapBuffer.Insert(character);
 
     const { x, y } = this.cursor.getPosition();
     const charSize = this.context.measureText(character);
@@ -90,8 +95,9 @@ export class TextCanvas {
 
     this.context.fillText(character, x, y);
 
-
+    console.log(this.gapBuffer.GetText());
   }
+
   public removeChar() {
     if (this.characterData.length <= 0) {
       console.warn("No characters to remove.");
@@ -106,6 +112,9 @@ export class TextCanvas {
       y: y,
     });
     this.renderCursor();
+
+    this.gapBuffer.Backspace();
+    console.log(this.gapBuffer.GetText());
   }
 
   public moveToNewLine() {
@@ -123,6 +132,7 @@ export class TextCanvas {
     this.context.fillStyle = `${this.font.fontColor}`;
     this.context.textBaseline = "top";
   }
+
   public moveCursorLeft() {
     const { x, y } = this.cursor.getPosition();
     if (x > 0) {
@@ -132,7 +142,10 @@ export class TextCanvas {
       });
     }
     this.renderCursor();
+
+    this.gapBuffer.Left(1);
   }
+
   public moveCursorRight() {
     const { x, y } = this.cursor.getPosition();
     if (x < this.canvas.width) {
@@ -142,7 +155,10 @@ export class TextCanvas {
       });
     }
     this.renderCursor();
+
+    this.gapBuffer.Right(1);
   }
+
   public moveCursorUp() {
     const { x, y } = this.cursor.getPosition();
     if (y > 0) {
@@ -153,6 +169,7 @@ export class TextCanvas {
     }
     this.renderCursor();
   }
+
   public moveCursorDown() {
     const { x, y } = this.cursor.getPosition();
     if (y < this.canvas.height) {

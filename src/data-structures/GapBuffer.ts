@@ -24,33 +24,48 @@ export class GapBuffer {
     this.buffer[this.start++] = s;
   }
 
-  Left(): void {
-    if (this.start === 0) return;
-    this.start--;
-    this.end--;
-    this.buffer[this.end] = this.buffer[this.start];
+  Left(count: number): void {
+    while (count > 0) {
+      if (this.start === 0) return;
+      this.start--;
+      this.end--;
+      this.buffer[this.end] = this.buffer[this.start];
+
+      this.buffer[this.start] = "";
+      count--;
+    }
   }
 
-  Right(): void {
-    if (this.end == this.n) return;
-    this.buffer[this.start] = this.buffer[this.end];
-    this.start++;
-    this.end++;
+  Right(count: number): void {
+    while (count > 0) {
+      if (this.end == this.n) return;
+      this.buffer[this.start] = this.buffer[this.end];
+      this.buffer[this.end] = "";
+
+      this.start++;
+      this.end++;
+      count--;
+    }
   }
 
   MoveCursor(pos: number): void {
     const contentLength = this.start + (this.n - this.end);
     pos = Math.max(0, Math.min(pos, contentLength));
-    while (this.start > pos) this.Left();
-    while (this.start < pos) this.Right();
+    while (this.start > pos) this.Left(1);
+    while (this.start < pos) this.Right(1);
   }
 
   Backspace(): void {
-    if (this.start) this.start--;
+    if (this.start) {
+      this.start--;
+    }
   }
 
   DeleteForward(): void {
-    if (this.end < this.n) this.end++;
+    if (this.end < this.n) {
+      this.buffer[this.end] = "";
+      this.end++;
+    }
   }
 
   Length(): number {
@@ -71,4 +86,21 @@ export class GapBuffer {
     const postGap = this.buffer.slice(this.end, this.n).join("");
     return preGap + postGap;
   }
+}
+
+export function GapBufferTest() {
+  const gapBuffer = new GapBuffer();
+  gapBuffer.Insert("o");
+  gapBuffer.Insert("j");
+  gapBuffer.Insert("a");
+  gapBuffer.Insert("s");
+  gapBuffer.Insert("m");
+  gapBuffer.Left(1);
+  gapBuffer.Insert("x");
+  gapBuffer.Right(1);
+  gapBuffer.Insert("y");
+  gapBuffer.Left(2);
+  gapBuffer.Insert("c");
+  gapBuffer.Backspace();
+  console.log(gapBuffer.GetText());
 }
