@@ -6,46 +6,42 @@ import {
 import { Cursor } from "../ui/cursor";
 import { ERROR_CONTEXT_NOT_FOUND } from "../utility/asserts";
 import Font from "../ui/font";
-import { GapBuffer, GapBufferTest } from "../data-structures/GapBuffer";
+import GapBuffer from "../data-structures/GapBuffer";
+import { EventType } from "./event";
+
+const characterData: ICharacterData[] = [];
+/**
+ * A canvas-side code data and metadata representation for managing cursor movements, text selections etc.
+ */
+export const CanvasCharacterDB: { data: ICharacterData[]; pointer: number } = {
+  data: characterData,
+  pointer: 0,
+};
 
 export class TextCanvas {
   private canvas: HTMLCanvasElement;
   private context: CanvasRenderingContext2D;
   private size: Size2D;
-  private cursor: Cursor;
   private scale: number = window.devicePixelRatio;
   private font: Font;
-  private characterData: ICharacterData[] = [];
   private gapBuffer: GapBuffer;
 
   constructor(canvas: HTMLCanvasElement, size: Size2D) {
-    this.gapBuffer = new GapBuffer();
     this.canvas = canvas;
     this.size = size;
 
     this.context = canvas.getContext("2d")!;
 
+    this.gapBuffer = new GapBuffer(this.context);
+
     canvas.width = Math.floor(this.size.width * this.scale);
     canvas.height = Math.floor(this.size.height * this.scale);
-    // canvas.width = this.size.width;
-    // canvas.height = this.size.height;
-
-    this.cursor = new Cursor({
-      x: 0,
-      y: this.context.measureText("j").actualBoundingBoxDescent,
-    });
 
     this.font = new Font();
     this.setFont(this.font);
-    this.renderCursor();
   }
 
   public setBackground(fillColor = "black") {
-    if (!this.context) {
-      ERROR_CONTEXT_NOT_FOUND();
-      return;
-    }
-
     this.context.fillStyle = fillColor;
     this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
   }
@@ -54,20 +50,14 @@ export class TextCanvas {
     return this.context;
   }
 
-  public getCursor() {
-    return this.cursor;
-  }
-  public renderCursor() {
-    this.cursor.erase(this.context);
-
-    this.cursor.draw(this.context);
-  }
-
   public getRawCanvas() {
     return this.canvas;
   }
 
-  public appendChar(character: string) {
+  /**
+   * Inserts the character to text canvas at cursor position
+   */
+  public Insert(character: string) {
     if (!isPrintableCharacter(character)) {
       console.error(
         `Character ${character} is not printable or is not a valid character.`
@@ -77,53 +67,15 @@ export class TextCanvas {
 
     this.gapBuffer.Insert(character);
 
-    const { x, y } = this.cursor.getPosition();
-    const charSize = this.context.measureText(character);
-    this.characterData.push({
-      x,
-      y,
-      width: Math.ceil(charSize.width),
-      height: charSize.actualBoundingBoxDescent,
-      actualAscent: charSize.actualBoundingBoxAscent,
-      actualDescent: charSize.actualBoundingBoxDescent,
-    });
-    this.cursor.setPosition({
-      x: x + charSize.width,
-      y,
-    });
-    this.renderCursor();
-
-    this.context.fillText(character, x, y);
-
-    console.log(this.gapBuffer.GetText());
+    this.update();
   }
 
+  /**
+   * Removes character from text canvas at current cursor position
+   */
   public removeChar() {
-    if (this.characterData.length <= 0) {
-      console.warn("No characters to remove.");
-      return;
-    }
-    const lastChar = this.characterData.pop()!;
-    console.log(lastChar);
-    const { x, y, width, height } = lastChar;
-    this.context.clearRect(x, y, width, height);
-    this.cursor.setPosition({
-      x: x,
-      y: y,
-    });
-    this.renderCursor();
-
     this.gapBuffer.Backspace();
-    console.log(this.gapBuffer.GetText());
-  }
-
-  public moveToNewLine() {
-    const { y } = this.cursor.getPosition();
-    this.cursor.setPosition({
-      x: 0,
-      y: y + this.context.measureText("a").fontBoundingBoxDescent,
-    });
-    this.renderCursor();
+    this.update();
   }
 
   public setFont(font: Font) {
@@ -133,51 +85,79 @@ export class TextCanvas {
     this.context.textBaseline = "top";
   }
 
-  public moveCursorLeft() {
-    const { x, y } = this.cursor.getPosition();
-    if (x > 0) {
-      this.cursor.setPosition({
-        x: x - this.characterData[this.characterData.length - 1].width,
+  public update() {
+    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+    const text = this.gapBuffer.GetText();
+    const tempCursor: Cursor = new Cursor({
+      x: 0,
+      y: 0,
+    });
+
+    for (const char of text) {
+      const { x, y } = tempCursor.getPosition();
+      const { width } = this.context.measureText(char);
+
+      this.context.fillText(char, x, y);
+      tempCursor.setPosition({
+        x: x + width,
         y,
       });
     }
-    this.renderCursor();
 
+    this.gapBuffer.getCursor().update(this.context);
+  }
+
+  /**
+   * Move the cursor x positions to the left after verification
+   */
+  /*
+  public moveLeft(x: number) {
+    console.log(CanvasCharacterDB.pointer);
+    for (let i = 0; i < x; i++) {
+      const currCharData =
+        CanvasCharacterDB.data[CanvasCharacterDB.pointer - 1];
+      this.cursor.moveLeft(currCharData.width);
+      CanvasCharacterDB.pointer--;
+    }
+  }
+    */
+
+  public moveLeft() {
     this.gapBuffer.Left(1);
+    this.update();
   }
 
-  public moveCursorRight() {
-    const { x, y } = this.cursor.getPosition();
-    if (x < this.canvas.width) {
-      this.cursor.setPosition({
-        x: x + this.characterData[this.characterData.length - 1].width,
-        y,
-      });
-    }
-    this.renderCursor();
-
+  public moveRight() {
     this.gapBuffer.Right(1);
+    this.update();
   }
 
-  public moveCursorUp() {
-    const { x, y } = this.cursor.getPosition();
-    if (y > 0) {
-      this.cursor.setPosition({
-        x,
-        y: y - this.font.sizeInPixels,
-      });
+  public handleKeyPress(event: KeyboardEvent) {
+    const key = event.key;
+
+    if (isPrintableCharacter(key)) {
+      this.Insert(key);
+    } else if (key === "Backspace") {
+      this.removeChar();
+    } else if (key === "ArrowLeft") {
+      this.moveLeft();
+    } else if (key === "ArrowRight") {
+      this.moveRight();
+    } else {
+      console.log("Not printable character");
     }
-    this.renderCursor();
+
+    console.log(this.gapBuffer.GetText());
   }
 
-  public moveCursorDown() {
-    const { x, y } = this.cursor.getPosition();
-    if (y < this.canvas.height) {
-      this.cursor.setPosition({
-        x,
-        y: y + this.font.sizeInPixels,
-      });
+  public handleEvent(event: any) {
+    switch (event.type) {
+      case EventType.KeyPress:
+        this.handleKeyPress(event.data);
+        break;
+      default:
+        console.warn("Not implemented yet or unknown event");
     }
-    this.renderCursor();
   }
 }

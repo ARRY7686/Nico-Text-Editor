@@ -94,65 +94,16 @@ class Editor {
     );
   }
 
-  private handleEvent(event: Event) {
-    switch (event.type) {
-      case EventType.KeyPress:
-        if (event.data instanceof KeyboardEvent) {
-          this.handleKeyPress(event.data);
-        } else {
-          console.error(
-            `Event of type ${event.type} passed as a Keyboard Event.`
-          );
-        }
-        break;
-      case EventType.MouseClick:
-        break;
-      case EventType.MouseSelection:
-        break;
-      case EventType.None:
-        break;
-      default:
-        console.error("Invalid event type");
-    }
-  }
-
-  /**
-   * @todo Also update text in dynamic array
-   */
-  private handleKeyPress(keyEvent: KeyboardEvent) {
-    const key = keyEvent.key;
-
-    if (isPrintableCharacter(key)) {
-      this.textCanvas.appendChar(key);
-    } else if (key === "Enter") {
-      this.textCanvas.moveToNewLine();
-    } else if (key === "Backspace") {
-      this.textCanvas.removeChar();
-    }else if (key === "ArrowLeft") {
-      this.textCanvas.moveCursorLeft();
-    }
-    else if (key === "ArrowRight") {
-      this.textCanvas.moveCursorRight();
-    }
-    else if (key === "ArrowUp") {
-      this.textCanvas.moveCursorUp();
-    }
-    else if (key === "ArrowDown") {
-      this.textCanvas.moveCursorDown();
-    }
-  }
-
   private attachEventListeners() {
-    console.log(this.containerDiv);
     this.containerDiv.addEventListener("keypress", (e) => {
       e.preventDefault();
       const event = new Event(EventType.KeyPress, e);
-      this.handleEvent(event);
+      this.textCanvas.handleEvent(event);
     });
     this.containerDiv.addEventListener("keydown", (e) => {
       e.preventDefault();
       const event = new Event(EventType.KeyPress, e);
-      this.handleEvent(event);
+      this.textCanvas.handleEvent(event);
     });
   }
 

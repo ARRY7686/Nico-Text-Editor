@@ -1,8 +1,19 @@
-export class GapBuffer {
-  buffer: string[] = Array(4).fill("");
-  start = 0;
-  end = 4;
-  n = 4;
+import { Cursor } from "../ui/cursor";
+
+class GapBuffer {
+  private buffer: string[] = Array(4).fill("");
+  private start = 0;
+  private end = 4;
+  private n = 4;
+  private context: CanvasRenderingContext2D;
+  private cursor: Cursor = new Cursor({
+    x: 0,
+    y: 0,
+  });
+
+  constructor(context: CanvasRenderingContext2D) {
+    this.context = context;
+  }
 
   Expand(): void {
     let new_buffer = Array(this.n * 2).fill("");
@@ -21,17 +32,31 @@ export class GapBuffer {
     if (this.start == this.end) {
       this.Expand();
     }
+    const currPos = this.cursor.getPosition();
+    const measurements = this.context.measureText(s);
+    const newPos = {
+      x: currPos.x + measurements.width,
+      y: currPos.y,
+    };
+    this.cursor.setPosition(newPos);
     this.buffer[this.start++] = s;
   }
 
   Left(count: number): void {
     while (count > 0) {
       if (this.start === 0) return;
+      const { x, y } = this.cursor.getPosition();
+      const { width } = this.context.measureText(this.buffer[this.start - 1]);
+      const newPos = {
+        x: x - width,
+        y,
+      };
+      this.cursor.setPosition(newPos);
+
       this.start--;
       this.end--;
       this.buffer[this.end] = this.buffer[this.start];
 
-      this.buffer[this.start] = "";
       count--;
     }
   }
@@ -40,7 +65,14 @@ export class GapBuffer {
     while (count > 0) {
       if (this.end == this.n) return;
       this.buffer[this.start] = this.buffer[this.end];
-      this.buffer[this.end] = "";
+
+      const { x, y } = this.cursor.getPosition();
+      const { width } = this.context.measureText(this.buffer[this.start]);
+      const newPos = {
+        x: x + width,
+        y,
+      };
+      this.cursor.setPosition(newPos);
 
       this.start++;
       this.end++;
@@ -57,6 +89,13 @@ export class GapBuffer {
 
   Backspace(): void {
     if (this.start) {
+      const { x, y } = this.cursor.getPosition();
+      const { width } = this.context.measureText(this.buffer[this.start - 1]);
+      const newPos = {
+        x: x - width,
+        y,
+      };
+      this.cursor.setPosition(newPos);
       this.start--;
     }
   }
@@ -86,21 +125,10 @@ export class GapBuffer {
     const postGap = this.buffer.slice(this.end, this.n).join("");
     return preGap + postGap;
   }
+
+  getCursor(): Cursor {
+    return this.cursor;
+  }
 }
 
-export function GapBufferTest() {
-  const gapBuffer = new GapBuffer();
-  gapBuffer.Insert("o");
-  gapBuffer.Insert("j");
-  gapBuffer.Insert("a");
-  gapBuffer.Insert("s");
-  gapBuffer.Insert("m");
-  gapBuffer.Left(1);
-  gapBuffer.Insert("x");
-  gapBuffer.Right(1);
-  gapBuffer.Insert("y");
-  gapBuffer.Left(2);
-  gapBuffer.Insert("c");
-  gapBuffer.Backspace();
-  console.log(gapBuffer.GetText());
-}
+export default GapBuffer;
