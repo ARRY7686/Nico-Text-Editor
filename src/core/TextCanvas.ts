@@ -4,7 +4,6 @@ import {
   ICharacterData,
 } from "../utility/utility";
 import { Cursor } from "../ui/cursor";
-import { ERROR_CONTEXT_NOT_FOUND } from "../utility/asserts";
 import Font from "../ui/font";
 import GapBufferList from "../data-structures/GapBuffer";
 import { EventType } from "./event";
