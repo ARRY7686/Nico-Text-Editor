@@ -6,13 +6,19 @@ class GapBuffer {
   private end = 4;
   private n = 4;
   private context: CanvasRenderingContext2D;
-  private cursor: Cursor = new Cursor({
-    x: 0,
-    y: 0,
-  });
+  private cursor: Cursor;
 
-  constructor(context: CanvasRenderingContext2D) {
+  constructor(context: CanvasRenderingContext2D, cursor: Cursor) {
     this.context = context;
+    this.cursor = cursor;
+  }
+
+  SetContext(ctx: CanvasRenderingContext2D) {
+    this.context = ctx;
+  }
+
+  SetCursor(cursor: Cursor) {
+    this.cursor = cursor;
   }
 
   Expand(): void {
@@ -126,9 +132,190 @@ class GapBuffer {
     return preGap + postGap;
   }
 
+  GetTextTillCursor(): string {
+    return this.buffer.slice(0, this.start).join("");
+  }
+
   getCursor(): Cursor {
     return this.cursor;
   }
+
+  GetStart(): number {
+    return this.start;
+  }
 }
 
-export default GapBuffer;
+class GapBufferList {
+  private buffers: GapBuffer[] = [];
+  private cursor: Cursor = new Cursor({
+    x: 0,
+    y: 0,
+  });
+  private context: CanvasRenderingContext2D;
+  private activeBuffer: number = 0;
+
+  constructor(context: CanvasRenderingContext2D) {
+    this.context = context;
+
+    let buffer = new GapBuffer(this.context, this.cursor);
+    this.buffers.push(buffer);
+    this.activeBuffer = 0;
+  }
+
+  Expand(): void {
+    this.buffers[this.activeBuffer].Expand();
+  }
+
+  Insert(s: string): void {
+    this.buffers[this.activeBuffer].Insert(s);
+  }
+
+  Left(count: number): void {
+    this.buffers[this.activeBuffer].Left(count);
+  }
+
+  Right(count: number): void {
+    this.buffers[this.activeBuffer].Right(count);
+  }
+
+  MoveCursor(pos: number): void {
+    this.buffers[this.activeBuffer].MoveCursor(pos);
+  }
+
+  Backspace(): void {
+    this.buffers[this.activeBuffer].Backspace();
+  }
+
+  DeleteForward(): void {
+    this.buffers[this.activeBuffer].DeleteForward();
+  }
+
+  Length(): number {
+    let length = 0;
+    for (const buffer of this.buffers) {
+      length += buffer.Length();
+    }
+
+    return length;
+  }
+
+  Get(pos: number): string {
+    // To Be Implemented
+    return "";
+  }
+
+  GetText(): string {
+    let text = "";
+    for (const buffer of this.buffers) {
+      text += buffer.GetText() + "\n";
+    }
+    return text;
+  }
+
+  GetCursor(): Cursor {
+    return this.cursor;
+  }
+
+  NewLine() {
+    const newGapBuffer = new GapBuffer(this.context, this.cursor);
+
+    // Trying to insert newline at the end of all lines
+    if (this.activeBuffer == this.buffers.length - 1) {
+      this.buffers.push(newGapBuffer);
+    } else {
+      // Trying to insert newline somewhere in between
+      this.buffers.splice(this.activeBuffer + 1, 0, newGapBuffer);
+    }
+
+    this.activeBuffer++;
+
+    // Move cursor to newline
+    this.cursor.setPosition({
+      x: 0,
+      y:
+        this.cursor.getPosition().y +
+        this.context.measureText("j").actualBoundingBoxDescent,
+    });
+
+    console.log("Current buff", this.activeBuffer);
+  }
+
+  Down(count: number) {
+    while (count > 0) {
+      if (this.activeBuffer == this.buffers.length - 1) return;
+
+      const currBuffer = this.buffers[this.activeBuffer];
+      const downBuffer = this.buffers[this.activeBuffer + 1];
+      const currStart = currBuffer.GetStart();
+      const downLen = downBuffer.Length();
+
+      const currCursorPos = this.cursor.getPosition();
+
+      if (downLen > currStart) {
+        // Simply move cursor one unit down
+        downBuffer.MoveCursor(currStart);
+        this.cursor.setPosition({
+          x: currCursorPos.x,
+          y:
+            currCursorPos.y +
+            this.context.measureText("j").actualBoundingBoxDescent,
+        });
+      } else {
+        // Move cursor to end of down line
+        downBuffer.MoveCursor(downLen);
+
+        const downLineFullText = downBuffer.GetText();
+        const { width } = this.context.measureText(downLineFullText);
+        this.cursor.setPosition({
+          x: width,
+          y:
+            currCursorPos.y +
+            this.context.measureText("j").actualBoundingBoxDescent,
+        });
+      }
+
+      this.activeBuffer++;
+      count--;
+    }
+  }
+
+  Up(count: number) {
+    while (count > 0) {
+      if (this.activeBuffer == 0) return;
+
+      const currBuffer = this.buffers[this.activeBuffer];
+      const upBuffer = this.buffers[this.activeBuffer - 1];
+      const currStart = currBuffer.GetStart();
+      const upLineLength = upBuffer.Length();
+      const currCursorPos = this.cursor.getPosition();
+
+      if (upLineLength > currStart) {
+        // Simply move cursor one unit up
+        upBuffer.MoveCursor(currStart);
+        this.cursor.setPosition({
+          x: currCursorPos.x,
+          y:
+            currCursorPos.y -
+            this.context.measureText("j").actualBoundingBoxDescent,
+        });
+      } else {
+        // Move cursor to end of up line
+        upBuffer.MoveCursor(upLineLength);
+
+        const upLineFullText = upBuffer.GetText();
+        const { width } = this.context.measureText(upLineFullText);
+        this.cursor.setPosition({
+          x: width,
+          y:
+            currCursorPos.y -
+            this.context.measureText("j").actualBoundingBoxDescent,
+        });
+      }
+
+      this.activeBuffer--;
+      count--;
+    }
+  }
+}
+
+export default GapBufferList;

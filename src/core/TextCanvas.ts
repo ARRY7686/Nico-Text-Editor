@@ -6,7 +6,7 @@ import {
 import { Cursor } from "../ui/cursor";
 import { ERROR_CONTEXT_NOT_FOUND } from "../utility/asserts";
 import Font from "../ui/font";
-import GapBuffer from "../data-structures/GapBuffer";
+import GapBufferList from "../data-structures/GapBuffer";
 import { EventType } from "./event";
 
 const characterData: ICharacterData[] = [];
@@ -24,7 +24,7 @@ export class TextCanvas {
   private size: Size2D;
   private scale: number = window.devicePixelRatio;
   private font: Font;
-  private gapBuffer: GapBuffer;
+  private gapBuffer: GapBufferList;
 
   constructor(canvas: HTMLCanvasElement, size: Size2D) {
     this.canvas = canvas;
@@ -32,7 +32,7 @@ export class TextCanvas {
 
     this.context = canvas.getContext("2d")!;
 
-    this.gapBuffer = new GapBuffer(this.context);
+    this.gapBuffer = new GapBufferList(this.context);
 
     canvas.width = Math.floor(this.size.width * this.scale);
     canvas.height = Math.floor(this.size.height * this.scale);
@@ -89,23 +89,31 @@ export class TextCanvas {
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     const text = this.gapBuffer.GetText();
+    console.log(text);
     const tempCursor: Cursor = new Cursor({
       x: 0,
       y: 0,
     });
 
+    this.gapBuffer.GetCursor().update(this.context);
+
     for (const char of text) {
       const { x, y } = tempCursor.getPosition();
-      const { width } = this.context.measureText(char);
+      if (char === "\n") {
+        tempCursor.setPosition({
+          x: 0,
+          y: y + this.context.measureText("j").actualBoundingBoxDescent,
+        });
+      } else {
+        const { width } = this.context.measureText(char);
 
-      this.context.fillText(char, x, y);
-      tempCursor.setPosition({
-        x: x + width,
-        y,
-      });
+        this.context.fillText(char, x, y);
+        tempCursor.setPosition({
+          x: x + width,
+          y,
+        });
+      }
     }
-
-    this.gapBuffer.getCursor().update(this.context);
   }
 
   /**
@@ -133,6 +141,21 @@ export class TextCanvas {
     this.update();
   }
 
+  public moveUp() {
+    this.gapBuffer.Up(1);
+    this.update();
+  }
+
+  public moveDown() {
+    this.gapBuffer.Down(1);
+    this.update();
+  }
+
+  public moveToNewLine() {
+    this.gapBuffer.NewLine();
+    this.update();
+  }
+
   public handleKeyPress(event: KeyboardEvent) {
     const key = event.key;
 
@@ -144,11 +167,15 @@ export class TextCanvas {
       this.moveLeft();
     } else if (key === "ArrowRight") {
       this.moveRight();
+    } else if (key === "ArrowUp") {
+      this.moveUp();
+    } else if (key === "ArrowDown") {
+      this.moveDown();
+    } else if (key === "Enter") {
+      this.moveToNewLine();
     } else {
       console.log("Not printable character");
     }
-
-    console.log(this.gapBuffer.GetText());
   }
 
   public handleEvent(event: any) {
