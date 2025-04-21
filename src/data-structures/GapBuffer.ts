@@ -113,6 +113,13 @@ class GapBuffer {
     }
   }
 
+  DeleteFromCursorTillEnd(): void {
+    while (this.end < this.n) {
+      this.buffer[this.end] = "";
+      this.end++;
+    }
+  }
+
   Length(): number {
     return this.n - (this.end - this.start);
   }
@@ -142,6 +149,10 @@ class GapBuffer {
 
   GetStart(): number {
     return this.start;
+  }
+
+  GetPostGapText(): string {
+    return this.buffer.slice(this.end, this.n).join("");
   }
 }
 
@@ -218,26 +229,30 @@ class GapBufferList {
 
   NewLine() {
     const newGapBuffer = new GapBuffer(this.context, this.cursor);
+    const currBuffer = this.buffers[this.activeBuffer];
+    const currBufferStart = currBuffer.GetStart();
+    const currBufferLen = currBuffer.Length();
 
-    // Trying to insert newline at the end of all lines
-    if (this.activeBuffer == this.buffers.length - 1) {
-      this.buffers.push(newGapBuffer);
+    if (currBufferStart < currBufferLen) {
+      const remText = currBuffer.GetPostGapText();
+      currBuffer.DeleteFromCursorTillEnd();
+
+      this.buffers.splice(this.activeBuffer + 1, 0, newGapBuffer);
+      for (const char of remText) {
+        newGapBuffer.Insert(char);
+      }
+      newGapBuffer.MoveCursor(0);
     } else {
-      // Trying to insert newline somewhere in between
       this.buffers.splice(this.activeBuffer + 1, 0, newGapBuffer);
     }
 
-    this.activeBuffer++;
-
-    // Move cursor to newline
     this.cursor.setPosition({
       x: 0,
       y:
         this.cursor.getPosition().y +
         this.context.measureText("j").actualBoundingBoxDescent,
     });
-
-    console.log("Current buff", this.activeBuffer);
+    this.activeBuffer++;
   }
 
   Down(count: number) {
