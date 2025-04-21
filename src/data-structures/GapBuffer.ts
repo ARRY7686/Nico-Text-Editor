@@ -108,15 +108,13 @@ class GapBuffer {
 
   DeleteForward(): void {
     if (this.end < this.n) {
-      this.buffer[this.end] = "";
       this.end++;
     }
   }
 
   DeleteFromCursorTillEnd(): void {
     while (this.end < this.n) {
-      this.buffer[this.end] = "";
-      this.end++;
+      this.DeleteForward();
     }
   }
 
@@ -194,7 +192,38 @@ class GapBufferList {
   }
 
   Backspace(): void {
-    this.buffers[this.activeBuffer].Backspace();
+    const currBuffer = this.buffers[this.activeBuffer];
+    const currBufferStart = currBuffer.GetStart();
+
+    if (currBufferStart == 0 && this.activeBuffer !== 0) {
+      const remText = currBuffer.GetText();
+      const upBuffer = this.buffers[this.activeBuffer - 1];
+
+      // copy remText to buffer present up
+      const { width } = this.context.measureText(upBuffer.GetText());
+
+      const cursorPos = upBuffer.Length();
+      for (const char of remText) {
+        upBuffer.Insert(char);
+      }
+
+      upBuffer.MoveCursor(cursorPos);
+
+      const currCursorPos = this.cursor.getPosition();
+      this.cursor.setPosition({
+        x: width,
+        y:
+          currCursorPos.y -
+          this.context.measureText("j").actualBoundingBoxDescent,
+      });
+
+      // delete current gap buffer
+      this.buffers.splice(this.activeBuffer, 1);
+
+      this.activeBuffer--;
+    } else {
+      this.buffers[this.activeBuffer].Backspace();
+    }
   }
 
   DeleteForward(): void {
@@ -216,6 +245,7 @@ class GapBufferList {
   }
 
   GetText(): string {
+    console.log(this.buffers);
     let text = "";
     for (const buffer of this.buffers) {
       text += buffer.GetText() + "\n";
@@ -235,7 +265,9 @@ class GapBufferList {
 
     if (currBufferStart < currBufferLen) {
       const remText = currBuffer.GetPostGapText();
-      currBuffer.DeleteFromCursorTillEnd();
+      this.buffers[this.activeBuffer].DeleteFromCursorTillEnd();
+
+      console.log("text", this.buffers[this.activeBuffer].GetText());
 
       this.buffers.splice(this.activeBuffer + 1, 0, newGapBuffer);
       for (const char of remText) {
