@@ -4,7 +4,7 @@ class Font {
   public fontColor: string = "white";
 
   constructor(
-    sizeInPixels = 20,
+    sizeInPixels = 24,
     fontFamily = "monospace",
     fontColor = "white"
   ) {

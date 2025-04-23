@@ -2,6 +2,7 @@ import {
   isPrintableCharacter,
   Size2D,
   ICharacterData,
+  Pos2D,
 } from "../utility/utility";
 import { Cursor } from "../ui/cursor";
 import Font from "../ui/font";
@@ -185,5 +186,10 @@ export class TextCanvas {
       default:
         console.warn("Not implemented yet or unknown event");
     }
+  }
+
+  public moveCursorToPoint(pos: Pos2D): void {
+    this.gapBuffer.MoveCursorToPoint(pos);
+    this.update();
   }
 }
