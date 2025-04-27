@@ -172,7 +172,9 @@ export class TextCanvas {
       this.moveDown();
     } else if (key === "Enter") {
       this.moveToNewLine();
-    } else {
+    } else if (key === "Tab") {
+      this.updateColor("blue",0,this.gapBuffer.Length()-6);
+    }else {
       console.log("Not printable character");
     }
   }
@@ -184,6 +186,45 @@ export class TextCanvas {
         break;
       default:
         console.warn("Not implemented yet or unknown event");
+    }
+  }
+  public updateColor(color:string,startIndex:number,endIndex:number) {
+    console.log("Updating color", color, startIndex, endIndex);
+    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+    const text = this.gapBuffer.GetText();
+    console.log(text);
+    const tempCursor: Cursor = new Cursor({
+      x: 0,
+      y: 0,
+    });
+
+    this.gapBuffer.GetCursor().update(this.context);
+    var count = 0;
+
+    for (const char of text) {
+      const { x, y } = tempCursor.getPosition();
+      if (char === "\n") {
+        tempCursor.setPosition({
+          x: 0,
+          y: y + this.context.measureText("j").actualBoundingBoxDescent,
+        });
+      } else {
+        const { width } = this.context.measureText(char);
+        if (count >= startIndex && count <= endIndex) {
+          this.context.fillStyle = color;
+          count+=1;
+        } else {
+          this.context.fillStyle = this.font.fontColor;
+          count+=1;
+        }
+        this.context.font = `${this.font.sizeInPixels}px ${this.font.fontFamily}`;
+        this.context.fillText(char, x, y);
+        tempCursor.setPosition({
+          x: x + width,
+          y,
+        });
+      }
     }
   }
 }
