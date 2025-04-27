@@ -1,4 +1,5 @@
 import { Cursor } from "../ui/cursor";
+import { Pos2D } from "../utility/utility";
 
 class GapBuffer {
   private buffer: string[] = Array(4).fill("");
@@ -240,8 +241,18 @@ class GapBufferList {
   }
 
   Get(pos: number): string {
-    // To Be Implemented
-    return "";
+    let pointer = 0;
+    while (this.buffers[pointer].Length() < pos) {
+      pos -= this.buffers[pointer].Length();
+      pointer++;
+    }
+
+    if (pointer < this.buffers.length) {
+      return this.buffers[pointer].Get(pos);
+    } else {
+      console.error("Index out of bounds");
+      return "-1";
+    }
   }
 
   GetText(): string {
@@ -362,6 +373,51 @@ class GapBufferList {
       this.activeBuffer--;
       count--;
     }
+  }
+
+  MoveCursorToPoint(pos: Pos2D) {
+    let { x, y } = pos;
+    const measurement = this.context.measureText("j");
+    const width = measurement.width;
+    const height = measurement.actualBoundingBoxDescent;
+
+    let curr = 0;
+    this.buffers[curr].MoveCursor(0);
+    this.cursor.setPosition({
+      x: 0,
+      y: 0,
+    });
+
+    while (y > 0) {
+      if (y >= height && curr < this.buffers.length - 1) {
+        y -= height;
+        curr++;
+        this.cursor.setPosition({
+          x,
+          y: this.cursor.getPosition().y + height,
+        });
+      } else {
+        break;
+      }
+    }
+
+    this.buffers[curr].MoveCursor(0);
+    this.cursor.setPosition({
+      x: 0,
+      y: this.cursor.getPosition().y,
+    });
+
+    console.log(this.cursor.getPosition(), curr);
+    while (x > 0) {
+      if (x >= width) {
+        x -= width;
+        this.buffers[curr].Right(1);
+      } else {
+        break;
+      }
+    }
+
+    this.activeBuffer = curr;
   }
 }
 

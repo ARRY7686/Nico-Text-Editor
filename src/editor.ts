@@ -6,7 +6,12 @@
 import DynamicArray from "./data-structures/DynamicArray";
 import Event, { EventType } from "./core/event";
 import Font from "./ui/font";
-import { Size2D, CanvasType, isPrintableCharacter } from "./utility/utility";
+import {
+  Size2D,
+  CanvasType,
+  isPrintableCharacter,
+  getRelativeCoords,
+} from "./utility/utility";
 import { TextCanvas } from "./core/TextCanvas";
 
 class TextContent {
@@ -109,6 +114,14 @@ class Editor {
       e.preventDefault();
       const event = new Event(EventType.MouseClick, e);
       this.textCanvas.handleEvent(event);
+    });
+    this.containerDiv.addEventListener("click", (e) => {
+      const pos = getRelativeCoords(
+        { x: e.clientX, y: e.clientY },
+        this.mainCanvas
+      );
+
+      this.textCanvas.moveCursorToPoint(pos);
     });
   }
 

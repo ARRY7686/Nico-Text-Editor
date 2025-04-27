@@ -28,3 +28,11 @@ export interface ICharacterData {
   actualAscent: number;
   actualDescent: number;
 }
+
+export function getRelativeCoords(pos: Pos2D, container: HTMLElement): Pos2D {
+  const { left, top } = container.getBoundingClientRect();
+  return {
+    x: pos.x - left,
+    y: pos.y - top,
+  };
+}
