@@ -110,6 +110,11 @@ class Editor {
       const event = new Event(EventType.KeyPress, e);
       this.textCanvas.handleEvent(event);
     });
+    this.containerDiv.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      const event = new Event(EventType.MouseClick, e);
+      this.textCanvas.handleEvent(event);
+    });
     this.containerDiv.addEventListener("click", (e) => {
       const pos = getRelativeCoords(
         { x: e.clientX, y: e.clientY },
