@@ -36,3 +36,13 @@ export function getRelativeCoords(pos: Pos2D, container: HTMLElement): Pos2D {
     y: pos.y - top,
   };
 }
+
+export abstract class Canvas {
+  public canvas: HTMLCanvasElement;
+  public context: CanvasRenderingContext2D;
+
+  constructor() {
+    this.canvas = document.createElement("canvas");
+    this.context = this.canvas.getContext("2d")!;
+  }
+}

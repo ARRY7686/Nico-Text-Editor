@@ -1,41 +1,34 @@
 import {
   isPrintableCharacter,
   Size2D,
-  ICharacterData,
   Pos2D,
+  Canvas,
 } from "../utility/utility";
 import { Cursor } from "../ui/cursor";
 import Font from "../ui/font";
 import GapBufferList from "../data-structures/GapBuffer";
 import { EventType } from "./event";
 
-const characterData: ICharacterData[] = [];
-/**
- * A canvas-side code data and metadata representation for managing cursor movements, text selections etc.
- */
-export const CanvasCharacterDB: { data: ICharacterData[]; pointer: number } = {
-  data: characterData,
-  pointer: 0,
-};
-
-export class TextCanvas {
-  private canvas: HTMLCanvasElement;
-  private context: CanvasRenderingContext2D;
+export class TextCanvas extends Canvas {
   private size: Size2D;
   private scale: number = window.devicePixelRatio;
   private font: Font;
   private gapBuffer: GapBufferList;
 
-  constructor(canvas: HTMLCanvasElement, size: Size2D) {
-    this.canvas = canvas;
-    this.size = size;
+  constructor(size: Size2D) {
+    super();
 
-    this.context = canvas.getContext("2d")!;
+    this.canvas.style.position = "absolute";
+    this.canvas.style.left = "0";
+    this.canvas.style.top = "0";
+    this.canvas.style.zIndex = "1";
+
+    this.size = size;
 
     this.gapBuffer = new GapBufferList(this.context);
 
-    canvas.width = Math.floor(this.size.width * this.scale);
-    canvas.height = Math.floor(this.size.height * this.scale);
+    this.canvas.width = Math.floor(this.size.width);
+    this.canvas.height = Math.floor(this.size.height);
 
     this.font = new Font();
     this.setFont(this.font);
@@ -116,21 +109,6 @@ export class TextCanvas {
     }
   }
 
-  /**
-   * Move the cursor x positions to the left after verification
-   */
-  /*
-  public moveLeft(x: number) {
-    console.log(CanvasCharacterDB.pointer);
-    for (let i = 0; i < x; i++) {
-      const currCharData =
-        CanvasCharacterDB.data[CanvasCharacterDB.pointer - 1];
-      this.cursor.moveLeft(currCharData.width);
-      CanvasCharacterDB.pointer--;
-    }
-  }
-    */
-
   public moveLeft() {
     this.gapBuffer.Left(1);
     this.update();
@@ -173,9 +151,7 @@ export class TextCanvas {
       this.moveDown();
     } else if (key === "Enter") {
       this.moveToNewLine();
-    } else if (key === "Tab") {
-      this.updateColor("blue",0,this.gapBuffer.Length()-6);
-    }else {
+    } else {
       console.log("Not printable character");
     }
   }
@@ -187,45 +163,6 @@ export class TextCanvas {
         break;
       default:
         console.warn("Not implemented yet or unknown event");
-    }
-  }
-  public updateColor(color:string,startIndex:number,endIndex:number) {
-    console.log("Updating color", color, startIndex, endIndex);
-    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-    const text = this.gapBuffer.GetText();
-    console.log(text);
-    const tempCursor: Cursor = new Cursor({
-      x: 0,
-      y: 0,
-    });
-
-    this.gapBuffer.GetCursor().update(this.context);
-    var count = 0;
-
-    for (const char of text) {
-      const { x, y } = tempCursor.getPosition();
-      if (char === "\n") {
-        tempCursor.setPosition({
-          x: 0,
-          y: y + this.context.measureText("j").actualBoundingBoxDescent,
-        });
-      } else {
-        const { width } = this.context.measureText(char);
-        if (count >= startIndex && count <= endIndex) {
-          this.context.fillStyle = color;
-          count+=1;
-        } else {
-          this.context.fillStyle = this.font.fontColor;
-          count+=1;
-        }
-        this.context.font = `${this.font.sizeInPixels}px ${this.font.fontFamily}`;
-        this.context.fillText(char, x, y);
-        tempCursor.setPosition({
-          x: x + width,
-          y,
-        });
-      }
     }
   }
 
