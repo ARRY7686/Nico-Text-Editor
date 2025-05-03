@@ -82,13 +82,12 @@ export class TextCanvas extends Canvas {
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     const text = this.gapBuffer.GetText();
-    console.log(text);
     const tempCursor: Cursor = new Cursor({
       x: 0,
       y: 0,
     });
 
-    this.gapBuffer.GetCursor().update(this.context);
+    this.gapBuffer.GetCursor().draw(this.context);
 
     for (const char of text) {
       const { x, y } = tempCursor.getPosition();
