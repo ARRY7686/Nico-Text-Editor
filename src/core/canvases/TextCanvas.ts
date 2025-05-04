@@ -3,16 +3,16 @@ import {
   Size2D,
   Pos2D,
   Canvas,
-} from "../utility/utility";
-import { Cursor } from "../ui/cursor";
-import Font from "../ui/font";
-import GapBufferList from "../data-structures/GapBuffer";
-import { EventType } from "./event";
+} from "../../utility/utility";
+import { Cursor } from "../../ui/cursor";
+import Font from "../../ui/font";
+import GapBufferList from "../../data-structures/GapBuffer";
+import { EventType } from "../event";
+import Editor from "../../editor";
 
 export class TextCanvas extends Canvas {
   private size: Size2D;
   private scale: number = window.devicePixelRatio;
-  private font: Font;
   private gapBuffer: GapBufferList;
 
   constructor(size: Size2D) {
@@ -22,6 +22,7 @@ export class TextCanvas extends Canvas {
     this.canvas.style.left = "0";
     this.canvas.style.top = "0";
     this.canvas.style.zIndex = "1";
+    this.canvas.id = "TextCanvas";
 
     this.size = size;
 
@@ -32,19 +33,6 @@ export class TextCanvas extends Canvas {
 
     this.font = new Font();
     this.setFont(this.font);
-  }
-
-  public setBackground(fillColor = "black") {
-    this.context.fillStyle = fillColor;
-    this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
-  }
-
-  public getContext() {
-    return this.context;
-  }
-
-  public getRawCanvas() {
-    return this.canvas;
   }
 
   /**
@@ -71,15 +59,20 @@ export class TextCanvas extends Canvas {
     this.update();
   }
 
-  public setFont(font: Font) {
-    this.font = font;
-    this.context.font = `${this.font.sizeInPixels}px ${this.font.fontFamily}`;
-    this.context.fillStyle = `${this.font.fontColor}`;
-    this.context.textBaseline = "top";
-  }
-
   public update() {
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    /**
+     * TODO: We don't need to clear the entire cursor canvas
+     * We can just clear the cursor's prev position and render it on the new position
+     * But it doesn't work as expected
+     * Find a way to fix this
+     */
+    Editor.cursorCanvas.context.clearRect(
+      0,
+      0,
+      Editor.cursorCanvas.canvas.width,
+      Editor.cursorCanvas.canvas.height
+    );
 
     const text = this.gapBuffer.GetText();
     const tempCursor: Cursor = new Cursor({
@@ -87,7 +80,7 @@ export class TextCanvas extends Canvas {
       y: 0,
     });
 
-    this.gapBuffer.GetCursor().draw(this.context);
+    this.gapBuffer.GetCursor().update(Editor.cursorCanvas.context);
 
     for (const char of text) {
       const { x, y } = tempCursor.getPosition();

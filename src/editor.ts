@@ -1,13 +1,15 @@
 import Event, { EventType } from "./core/event";
 import Font from "./ui/font";
 import { Size2D, CanvasType, getRelativeCoords } from "./utility/utility";
-import { TextCanvas } from "./core/TextCanvas";
-import MainCanvas from "./core/MainCanvas";
+import { TextCanvas } from "./core/canvases/TextCanvas";
+import MainCanvas from "./core/canvases/MainCanvas";
+import CursorCanvas from "./core/canvases/CursorCanvas";
 
 class Editor {
   private font: Font = new Font();
   private mainCanvas: MainCanvas;
   private textCanvas: TextCanvas;
+  public static cursorCanvas: CursorCanvas;
   private scale: number = window.devicePixelRatio;
   private container: HTMLDivElement;
 
@@ -18,32 +20,18 @@ class Editor {
     this.container.style.height = `${size.height}px`;
     this.container.focus();
 
-    this.mainCanvas = new MainCanvas();
-
-    this.mainCanvas.canvas.width = Math.floor(size.width);
-    this.mainCanvas.canvas.height = Math.floor(size.height);
-
+    this.mainCanvas = new MainCanvas(size);
+    this.mainCanvas.setBackground("black");
     this.container.appendChild(this.mainCanvas.canvas);
 
     this.textCanvas = new TextCanvas(size);
-    this.textCanvas.setBackground();
-
     this.container.appendChild(this.textCanvas.canvas);
+
+    Editor.cursorCanvas = new CursorCanvas(size);
+    this.container.appendChild(Editor.cursorCanvas.canvas);
 
     this.attachEventListeners();
     this.setFont(this.font);
-
-    this.setBackground();
-  }
-
-  public setBackground(fillColor = "black") {
-    this.mainCanvas.context.fillStyle = fillColor;
-    this.mainCanvas.context.fillRect(
-      0,
-      0,
-      this.mainCanvas.canvas.width,
-      this.mainCanvas.canvas.height
-    );
   }
 
   private attachEventListeners() {

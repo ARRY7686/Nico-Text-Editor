@@ -21,15 +21,18 @@ export class Cursor {
   }
 
   public draw(context: CanvasRenderingContext2D) {
+    console.log(context);
     context.fillStyle = "white";
     context.fillRect(this.position.x, this.position.y, 2, this.height);
   }
 
   public erase(context: CanvasRenderingContext2D) {
+    console.log(context);
     context.clearRect(this.lastPosition.x, this.lastPosition.y, 2, this.height);
   }
 
   public update(context: CanvasRenderingContext2D) {
+    console.log(context);
     this.erase(context);
     this.draw(context);
   }

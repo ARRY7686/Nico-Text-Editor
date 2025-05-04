@@ -1,3 +1,4 @@
+import Editor from "../editor";
 import { Cursor } from "../ui/cursor";
 import { Pos2D } from "../utility/utility";
 

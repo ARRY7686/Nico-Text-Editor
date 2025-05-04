@@ -1,3 +1,5 @@
+import Font from "../ui/font";
+
 export function isPrintableCharacter(char: string) {
   const charCode = char.charCodeAt(0);
 
@@ -40,9 +42,22 @@ export function getRelativeCoords(pos: Pos2D, container: HTMLElement): Pos2D {
 export abstract class Canvas {
   public canvas: HTMLCanvasElement;
   public context: CanvasRenderingContext2D;
+  protected font: Font;
 
   constructor() {
     this.canvas = document.createElement("canvas");
     this.context = this.canvas.getContext("2d")!;
+  }
+
+  public setBackground(fillColor = "black") {
+    this.context.fillStyle = fillColor;
+    this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+  }
+
+  public setFont(font: Font) {
+    this.font = font;
+    this.context.font = `${this.font.sizeInPixels}px ${this.font.fontFamily}`;
+    this.context.fillStyle = `${this.font.fontColor}`;
+    this.context.textBaseline = "top";
   }
 }
