@@ -20,15 +20,15 @@ class Editor {
     this.container.style.height = `${size.height}px`;
     this.container.focus();
 
+    Editor.cursorCanvas = new CursorCanvas(size);
+    this.container.appendChild(Editor.cursorCanvas.canvas);
+
     this.mainCanvas = new MainCanvas(size);
     this.mainCanvas.setBackground("black");
     this.container.appendChild(this.mainCanvas.canvas);
 
     this.textCanvas = new TextCanvas(size);
     this.container.appendChild(this.textCanvas.canvas);
-
-    Editor.cursorCanvas = new CursorCanvas(size);
-    this.container.appendChild(Editor.cursorCanvas.canvas);
 
     this.attachEventListeners();
     this.setFont(this.font);

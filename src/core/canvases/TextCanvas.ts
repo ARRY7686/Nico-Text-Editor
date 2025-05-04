@@ -33,6 +33,8 @@ export class TextCanvas extends Canvas {
 
     this.font = new Font();
     this.setFont(this.font);
+
+    this.gapBuffer.GetCursor().ToggleBlinking(Editor.cursorCanvas.context);
   }
 
   /**
@@ -79,8 +81,6 @@ export class TextCanvas extends Canvas {
       x: 0,
       y: 0,
     });
-
-    this.gapBuffer.GetCursor().update(Editor.cursorCanvas.context);
 
     for (const char of text) {
       const { x, y } = tempCursor.getPosition();

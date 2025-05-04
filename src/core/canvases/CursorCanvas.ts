@@ -11,6 +11,7 @@ class CursorCanvas extends Canvas {
     this.canvas.style.top = "0";
     this.canvas.style.zIndex = "2";
     this.canvas.id = "CursorCanvas";
+    this.canvas.style.cursor = "text";
 
     this.size = size;
 
