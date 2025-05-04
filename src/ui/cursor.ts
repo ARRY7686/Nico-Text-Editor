@@ -7,7 +7,7 @@ export class Cursor {
   private size: Size2D;
   private blinkIntervalID: number = -1;
 
-  constructor(position: Pos2D, width: number = 2) {
+  constructor(position: Pos2D, width: number = 10) {
     this.position = position;
     this.lastPosition = { ...position };
     this.size = { width, height: 25 };
