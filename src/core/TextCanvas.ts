@@ -133,6 +133,11 @@ export class TextCanvas extends Canvas {
     this.update();
   }
 
+  public DeleteForward() {
+    this.gapBuffer.DeleteForward();
+    this.update();
+  }
+
   public handleKeyPress(event: KeyboardEvent) {
     const key = event.key;
 
@@ -150,6 +155,8 @@ export class TextCanvas extends Canvas {
       this.moveDown();
     } else if (key === "Enter") {
       this.moveToNewLine();
+    } else if (key === "Delete") {
+      this.DeleteForward();
     } else {
       console.log("Not printable character");
     }
