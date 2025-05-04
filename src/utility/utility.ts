@@ -42,7 +42,7 @@ export function getRelativeCoords(pos: Pos2D, container: HTMLElement): Pos2D {
 export abstract class Canvas {
   public canvas: HTMLCanvasElement;
   public context: CanvasRenderingContext2D;
-  protected font: Font;
+  protected font: Font = new Font();
 
   constructor() {
     this.canvas = document.createElement("canvas");
