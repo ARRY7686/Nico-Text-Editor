@@ -2,8 +2,13 @@ import Editor from "../editor";
 import { Cursor } from "../ui/cursor";
 import { Pos2D } from "../utility/utility";
 
+interface GapBufferData {
+  char: string;
+  color: string;
+}
+
 class GapBuffer {
-  private buffer: string[] = Array(4).fill("");
+  private buffer: GapBufferData[] = Array(4).fill("");
   private start = 0;
   private end = 4;
   private n = 4;
@@ -36,7 +41,7 @@ class GapBuffer {
     this.buffer = new_buffer;
   }
 
-  Insert(s: string): void {
+  Insert(s: string, color: string = "white"): void {
     if (this.start == this.end) {
       this.Expand();
     }
@@ -47,14 +52,19 @@ class GapBuffer {
       y: currPos.y,
     };
     this.cursor.setPosition(newPos);
-    this.buffer[this.start++] = s;
+    this.buffer[this.start++] = {
+      char: s,
+      color,
+    };
   }
 
   Left(count: number): void {
     while (count > 0) {
       if (this.start === 0) return;
       const { x, y } = this.cursor.getPosition();
-      const { width } = this.context.measureText(this.buffer[this.start - 1]);
+      const { width } = this.context.measureText(
+        this.buffer[this.start - 1].char
+      );
       const newPos = {
         x: x - width,
         y,
@@ -75,7 +85,7 @@ class GapBuffer {
       this.buffer[this.start] = this.buffer[this.end];
 
       const { x, y } = this.cursor.getPosition();
-      const { width } = this.context.measureText(this.buffer[this.start]);
+      const { width } = this.context.measureText(this.buffer[this.start].char);
       const newPos = {
         x: x + width,
         y,
@@ -98,7 +108,9 @@ class GapBuffer {
   Backspace(): void {
     if (this.start) {
       const { x, y } = this.cursor.getPosition();
-      const { width } = this.context.measureText(this.buffer[this.start - 1]);
+      const { width } = this.context.measureText(
+        this.buffer[this.start - 1].char
+      );
       const newPos = {
         x: x - width,
         y,
@@ -129,18 +141,43 @@ class GapBuffer {
       pos >= 0 && pos < this.Length(),
       "GapBuffer Error: Index out of bounds"
     );
+    if (pos < this.start) return this.buffer[pos].char;
+    return this.buffer[pos + this.end - this.start].char;
+  }
+
+  GetDataAtIndex(pos: number): GapBufferData {
+    console.assert(
+      pos >= 0 && pos < this.Length(),
+      "GapBuffer Error: Index out of bounds"
+    );
     if (pos < this.start) return this.buffer[pos];
     return this.buffer[pos + this.end - this.start];
   }
 
   GetText(): string {
-    const preGap = this.buffer.slice(0, this.start).join("");
-    const postGap = this.buffer.slice(this.end, this.n).join("");
+    const preGap = this.buffer
+      .slice(0, this.start)
+      .map((obj) => obj.char)
+      .join("");
+    const postGap = this.buffer
+      .slice(this.end, this.n)
+      .map((obj) => obj.char)
+      .join("");
     return preGap + postGap;
+  }
+
+  GetFullData(): GapBufferData[] {
+    const preGap = this.buffer.slice(0, this.start);
+    const postGap = this.buffer.slice(this.end, this.n);
+    return [...preGap, ...postGap];
   }
 
   GetTextTillCursor(): string {
     return this.buffer.slice(0, this.start).join("");
+  }
+
+  GetDataTillCursor(): GapBufferData[] {
+    return this.buffer.slice(0, this.start);
   }
 
   getCursor(): Cursor {
@@ -153,6 +190,10 @@ class GapBuffer {
 
   GetPostGapText(): string {
     return this.buffer.slice(this.end, this.n).join("");
+  }
+
+  GetPostGapData(): GapBufferData[] {
+    return this.buffer.slice(this.end, this.n);
   }
 }
 
@@ -177,8 +218,8 @@ class GapBufferList {
     this.buffers[this.activeBuffer].Expand();
   }
 
-  Insert(s: string): void {
-    this.buffers[this.activeBuffer].Insert(s);
+  Insert(s: string, color: string = "white"): void {
+    this.buffers[this.activeBuffer].Insert(s, color);
   }
 
   Left(count: number): void {
@@ -257,7 +298,6 @@ class GapBufferList {
   }
 
   GetText(): string {
-    console.log(this.buffers);
     let text = "";
     for (const buffer of this.buffers) {
       text += buffer.GetText() + "\n";
@@ -419,6 +459,35 @@ class GapBufferList {
     }
 
     this.activeBuffer = curr;
+  }
+
+  GetDataAtIndex(pos: number): GapBufferData {
+    let pointer = 0;
+    while (this.buffers[pointer].Length() < pos) {
+      pos -= this.buffers[pointer].Length();
+      pointer++;
+    }
+
+    if (pointer < this.buffers.length) {
+      return this.buffers[pointer].GetDataAtIndex(pos);
+    } else {
+      console.error("Index out of bounds");
+      return { char: "-1", color: "" };
+    }
+  }
+
+  GetFullData(): GapBufferData[] {
+    let data: GapBufferData[] = [];
+    for (const buffer of this.buffers) {
+      for (const obj of buffer.GetFullData()) {
+        data.push(obj);
+      }
+      data.push({
+        char: "\n",
+        color: "white",
+      });
+    }
+    return data;
   }
 }
 

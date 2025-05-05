@@ -14,6 +14,7 @@ export class TextCanvas extends Canvas {
   private size: Size2D;
   private scale: number = window.devicePixelRatio;
   private gapBuffer: GapBufferList;
+  private colorPicker: HTMLInputElement;
 
   constructor(size: Size2D) {
     super();
@@ -35,6 +36,9 @@ export class TextCanvas extends Canvas {
     this.setFont(this.font);
 
     this.gapBuffer.GetCursor().ToggleBlinking(Editor.cursorCanvas.context);
+
+    this.colorPicker =
+      document.querySelector<HTMLInputElement>("#color-picker")!;
   }
 
   /**
@@ -48,7 +52,7 @@ export class TextCanvas extends Canvas {
       return;
     }
 
-    this.gapBuffer.Insert(character);
+    this.gapBuffer.Insert(character, this.colorPicker.value);
 
     this.update();
   }
@@ -76,13 +80,16 @@ export class TextCanvas extends Canvas {
       Editor.cursorCanvas.canvas.height
     );
 
-    const text = this.gapBuffer.GetText();
+    const data = this.gapBuffer.GetFullData();
     const tempCursor: Cursor = new Cursor({
       x: 0,
       y: 0,
     });
 
-    for (const char of text) {
+    console.log(data);
+
+    for (const obj of data) {
+      const { char, color } = obj;
       const { x, y } = tempCursor.getPosition();
       if (char === "\n") {
         tempCursor.setPosition({
@@ -91,7 +98,7 @@ export class TextCanvas extends Canvas {
         });
       } else {
         const { width } = this.context.measureText(char);
-
+        this.context.fillStyle = color;
         this.context.fillText(char, x, y);
         tempCursor.setPosition({
           x: x + width,
