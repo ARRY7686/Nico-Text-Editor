@@ -9,12 +9,15 @@ import Font from "../../ui/font";
 import GapBufferList from "../../data-structures/GapBuffer";
 import { EventType } from "../event";
 import Editor from "../../editor";
+import { getRelativeCoords } from "../../utility/utility";
 
 export class TextCanvas extends Canvas {
   private size: Size2D;
   private scale: number = window.devicePixelRatio;
-  private gapBuffer: GapBufferList;
+  public static gapBuffer: GapBufferList;
   private colorPicker: HTMLInputElement;
+  private selectionStartInp: HTMLInputElement;
+  private selectionEndInp: HTMLInputElement;
 
   constructor(size: Size2D) {
     super();
@@ -27,7 +30,7 @@ export class TextCanvas extends Canvas {
 
     this.size = size;
 
-    this.gapBuffer = new GapBufferList(this.context);
+    TextCanvas.gapBuffer = new GapBufferList(this.context);
 
     this.canvas.width = Math.floor(this.size.width);
     this.canvas.height = Math.floor(this.size.height);
@@ -35,10 +38,19 @@ export class TextCanvas extends Canvas {
     this.font = new Font();
     this.setFont(this.font);
 
-    this.gapBuffer.GetCursor().ToggleBlinking(Editor.cursorCanvas.context);
+    TextCanvas.gapBuffer
+      .GetCursor()
+      .ToggleBlinking(Editor.cursorCanvas.context);
 
     this.colorPicker =
       document.querySelector<HTMLInputElement>("#color-picker")!;
+    this.selectionStartInp = document.querySelector<HTMLInputElement>(
+      "#selection-start-idx"
+    )!;
+    this.selectionEndInp =
+      document.querySelector<HTMLInputElement>("#selection-end-idx")!;
+
+    this.attachEventListeners();
   }
 
   /**
@@ -52,7 +64,7 @@ export class TextCanvas extends Canvas {
       return;
     }
 
-    this.gapBuffer.Insert(character, this.colorPicker.value);
+    TextCanvas.gapBuffer.Insert(character, this.colorPicker.value);
 
     this.update();
   }
@@ -61,7 +73,7 @@ export class TextCanvas extends Canvas {
    * Removes character from text canvas at current cursor position
    */
   public removeChar() {
-    this.gapBuffer.Backspace();
+    TextCanvas.gapBuffer.Backspace();
     this.update();
   }
 
@@ -80,15 +92,18 @@ export class TextCanvas extends Canvas {
       Editor.cursorCanvas.canvas.height
     );
 
-    const data = this.gapBuffer.GetFullData();
+    const data = TextCanvas.gapBuffer.GetFullData();
     const tempCursor: Cursor = new Cursor({
       x: 0,
       y: 0,
     });
 
     console.log(data);
+    let highlight = false;
 
     for (const obj of data) {
+      if (obj.selectionStart) highlight = true;
+
       const { char, color } = obj;
       const { x, y } = tempCursor.getPosition();
       if (char === "\n") {
@@ -98,43 +113,45 @@ export class TextCanvas extends Canvas {
         });
       } else {
         const { width } = this.context.measureText(char);
-        this.context.fillStyle = color;
+        this.context.fillStyle = highlight ? "blue" : color;
         this.context.fillText(char, x, y);
         tempCursor.setPosition({
           x: x + width,
           y,
         });
       }
+
+      if (obj.selectionEnd) highlight = false;
     }
   }
 
   public moveLeft() {
-    this.gapBuffer.Left(1);
+    TextCanvas.gapBuffer.Left(1);
     this.update();
   }
 
   public moveRight() {
-    this.gapBuffer.Right(1);
+    TextCanvas.gapBuffer.Right(1);
     this.update();
   }
 
   public moveUp() {
-    this.gapBuffer.Up(1);
+    TextCanvas.gapBuffer.Up(1);
     this.update();
   }
 
   public moveDown() {
-    this.gapBuffer.Down(1);
+    TextCanvas.gapBuffer.Down(1);
     this.update();
   }
 
   public moveToNewLine() {
-    this.gapBuffer.NewLine();
+    TextCanvas.gapBuffer.NewLine();
     this.update();
   }
 
   public DeleteForward() {
-    this.gapBuffer.DeleteForward();
+    TextCanvas.gapBuffer.DeleteForward();
     this.update();
   }
 
@@ -173,7 +190,21 @@ export class TextCanvas extends Canvas {
   }
 
   public moveCursorToPoint(pos: Pos2D): void {
-    this.gapBuffer.MoveCursorToPoint(pos);
+    TextCanvas.gapBuffer.MoveCursorToPoint(pos);
     this.update();
+  }
+
+  public attachEventListeners() {
+    this.selectionStartInp.addEventListener("input", (e) => {
+      TextCanvas.gapBuffer.SetSelectionStart(
+        Number(this.selectionStartInp.value)
+      );
+      this.update();
+    });
+
+    this.selectionEndInp.addEventListener("input", (e) => {
+      TextCanvas.gapBuffer.SetSelectionEnd(Number(this.selectionEndInp.value));
+      this.update();
+    });
   }
 }

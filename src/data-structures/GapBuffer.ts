@@ -5,6 +5,8 @@ import { Pos2D } from "../utility/utility";
 interface GapBufferData {
   char: string;
   color: string;
+  selectionStart: boolean;
+  selectionEnd: boolean;
 }
 
 class GapBuffer {
@@ -55,6 +57,8 @@ class GapBuffer {
     this.buffer[this.start++] = {
       char: s,
       color,
+      selectionStart: false,
+      selectionEnd: false,
     };
   }
 
@@ -205,6 +209,10 @@ class GapBufferList {
   });
   private context: CanvasRenderingContext2D;
   private activeBuffer: number = 0;
+  private selections: { selectionStartIdx: number; selectionEndIdx: number } = {
+    selectionStartIdx: 0,
+    selectionEndIdx: 0,
+  };
 
   constructor(context: CanvasRenderingContext2D) {
     this.context = context;
@@ -416,6 +424,61 @@ class GapBufferList {
     }
   }
 
+  GetDataIdxAtPoint(pos: Pos2D) {
+    let { x, y } = pos;
+    const measurement = this.context.measureText("j");
+    const width = measurement.width;
+    const height = measurement.actualBoundingBoxDescent;
+
+    let old_pos = this.buffers[this.activeBuffer].GetStart();
+
+    let idx = 0;
+
+    let curr = 0;
+    this.buffers[curr].MoveCursor(0);
+    this.cursor.setPosition({
+      x: 0,
+      y: 0,
+    });
+
+    while (y > 0) {
+      if (y >= height && curr < this.buffers.length - 1) {
+        y -= height;
+        console.log("len", this.buffers[curr].Length());
+        idx += this.buffers[curr].Length();
+        curr++;
+        this.cursor.setPosition({
+          x,
+          y: this.cursor.getPosition().y + height,
+        });
+      } else {
+        break;
+      }
+    }
+
+    this.buffers[curr].MoveCursor(0);
+    this.cursor.setPosition({
+      x: 0,
+      y: this.cursor.getPosition().y,
+    });
+
+    console.log(this.cursor.getPosition(), curr);
+    while (x > 0) {
+      if (x >= width) {
+        x -= width;
+        this.buffers[curr].Right(1);
+        console.log("yay");
+        idx++;
+      } else {
+        break;
+      }
+    }
+
+    this.buffers[this.activeBuffer].MoveCursor(old_pos);
+
+    return idx;
+  }
+
   MoveCursorToPoint(pos: Pos2D) {
     let { x, y } = pos;
     const measurement = this.context.measureText("j");
@@ -472,7 +535,12 @@ class GapBufferList {
       return this.buffers[pointer].GetDataAtIndex(pos);
     } else {
       console.error("Index out of bounds");
-      return { char: "-1", color: "" };
+      return {
+        char: "-1",
+        color: "",
+        selectionStart: false,
+        selectionEnd: false,
+      };
     }
   }
 
@@ -485,9 +553,24 @@ class GapBufferList {
       data.push({
         char: "\n",
         color: "white",
+        selectionStart: false,
+        selectionEnd: false,
       });
     }
     return data;
+  }
+
+  SetSelectionStart(pos: number) {
+    this.GetDataAtIndex(pos).selectionStart = true;
+    this.GetDataAtIndex(this.selections.selectionStartIdx).selectionStart =
+      false;
+    this.selections.selectionStartIdx = pos;
+  }
+
+  SetSelectionEnd(pos: number) {
+    this.GetDataAtIndex(pos).selectionEnd = true;
+    this.GetDataAtIndex(this.selections.selectionEndIdx).selectionEnd = false;
+    this.selections.selectionEndIdx = pos;
   }
 }
 

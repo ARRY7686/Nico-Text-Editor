@@ -1,5 +1,7 @@
-import { Canvas, Size2D } from "../../utility/utility";
+import { Canvas, getRelativeCoords, Size2D } from "../../utility/utility";
 import Font from "../../ui/font";
+import Editor from "../../editor";
+import { TextCanvas } from "./TextCanvas";
 
 class CursorCanvas extends Canvas {
   private size: Size2D;
@@ -19,6 +21,20 @@ class CursorCanvas extends Canvas {
     this.canvas.height = this.size.height;
 
     this.setFont(new Font());
+
+    this.attachEventListeners();
+  }
+
+  public attachEventListeners() {
+    this.canvas.addEventListener("mousedown", (e) => {
+      const coords = getRelativeCoords(
+        { x: e.clientX, y: e.clientY },
+        this.canvas
+      );
+
+      const idx = TextCanvas.gapBuffer.GetDataIdxAtPoint(coords);
+      console.log("Idx", idx);
+    });
   }
 }
 
