@@ -444,7 +444,6 @@ class GapBufferList {
     while (y > 0) {
       if (y >= height && curr < this.buffers.length - 1) {
         y -= height;
-        console.log("len", this.buffers[curr].Length());
         idx += this.buffers[curr].Length();
         curr++;
         this.cursor.setPosition({
@@ -462,7 +461,6 @@ class GapBufferList {
       y: this.cursor.getPosition().y,
     });
 
-    console.log(this.cursor.getPosition(), curr);
     while (
       x > 0 &&
       this.buffers[curr].GetStart() < this.buffers[curr].Length()
@@ -470,7 +468,6 @@ class GapBufferList {
       if (x >= width) {
         x -= width;
         this.buffers[curr].Right(1);
-        console.log("yay", x, width);
         idx++;
       } else {
         break;
@@ -564,6 +561,11 @@ class GapBufferList {
   }
 
   SetSelectionStart(pos: number) {
+    if (
+      this.GetDataAtIndex(pos) ===
+      this.GetDataAtIndex(this.selections.selectionStartIdx)
+    )
+      return;
     this.GetDataAtIndex(pos).selectionStart = true;
     this.GetDataAtIndex(this.selections.selectionStartIdx).selectionStart =
       false;
@@ -571,7 +573,13 @@ class GapBufferList {
   }
 
   SetSelectionEnd(pos: number) {
+    if (
+      this.GetDataAtIndex(pos) ===
+      this.GetDataAtIndex(this.selections.selectionEndIdx)
+    )
+      return;
     this.GetDataAtIndex(pos).selectionEnd = true;
+    console.log("char data", this.GetDataAtIndex(pos));
     this.GetDataAtIndex(this.selections.selectionEndIdx).selectionEnd = false;
     this.selections.selectionEndIdx = pos;
   }
