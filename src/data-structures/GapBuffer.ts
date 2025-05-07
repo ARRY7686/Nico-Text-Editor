@@ -463,11 +463,14 @@ class GapBufferList {
     });
 
     console.log(this.cursor.getPosition(), curr);
-    while (x > 0) {
+    while (
+      x > 0 &&
+      this.buffers[curr].GetStart() < this.buffers[curr].Length()
+    ) {
       if (x >= width) {
         x -= width;
         this.buffers[curr].Right(1);
-        console.log("yay");
+        console.log("yay", x, width);
         idx++;
       } else {
         break;
