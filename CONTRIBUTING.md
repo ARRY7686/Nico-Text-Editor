@@ -6,7 +6,7 @@ Thank you for your interest in contributing to **Nico Text Editor**! We apprecia
 By contributing, you agree to uphold a respectful and inclusive environment. Be constructive in your feedback and discussions.
 
 ## AI-Generated Code Policy
-We strictly **prohibit AI-generated code submissions**. Every contributor must **fully understand** the code they submit. If we detect AI-generated contributions without comprehension, they will be rejected.
+We strictly **prohibit AI-generated code submissions**. Every contributor must be **fully aware** of the code they submit. If we detect AI-generated contributions without comprehension, they will be rejected.
 
 ## Pull Request Guidelines
 - Clearly describe your changes in the PR description.
