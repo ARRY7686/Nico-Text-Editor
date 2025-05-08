@@ -129,9 +129,8 @@ export class TextCanvas extends Canvas {
             width + 2,
             this.context.measureText("j").actualBoundingBoxDescent
           );
-        } else {
-          this.context.fillStyle = color;
         }
+        this.context.fillStyle = color;
         this.context.fillText(char, x, y);
         tempCursor.setPosition({
           x: x + width,
