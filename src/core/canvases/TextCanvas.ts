@@ -10,6 +10,7 @@ import GapBufferList from "../../data-structures/GapBuffer";
 import { EventType } from "../event";
 import Editor from "../../editor";
 import { getRelativeCoords } from "../../utility/utility";
+import MainCanvas from "./MainCanvas";
 
 export class TextCanvas extends Canvas {
   private size: Size2D;
@@ -79,6 +80,13 @@ export class TextCanvas extends Canvas {
 
   public update() {
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    Editor.mainCanvas.context.clearRect(
+      0,
+      0,
+      Editor.mainCanvas.canvas.width,
+      Editor.mainCanvas.canvas.height
+    );
+    Editor.mainCanvas.setBackground();
     /**
      * TODO: We don't need to clear the entire cursor canvas
      * We can just clear the cursor's prev position and render it on the new position
@@ -113,7 +121,17 @@ export class TextCanvas extends Canvas {
         });
       } else {
         const { width } = this.context.measureText(char);
-        this.context.fillStyle = highlight ? "blue" : color;
+        if (highlight) {
+          Editor.mainCanvas.context.fillStyle = "blue";
+          Editor.mainCanvas.context.fillRect(
+            x,
+            y,
+            width,
+            this.context.measureText("j").actualBoundingBoxDescent
+          );
+        } else {
+          this.context.fillStyle = color;
+        }
         this.context.fillText(char, x, y);
         tempCursor.setPosition({
           x: x + width,

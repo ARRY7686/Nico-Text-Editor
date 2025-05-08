@@ -13,6 +13,10 @@ class MainCanvas extends Canvas {
     this.canvas.style.zIndex = "0";
     this.canvas.id = "MainCanvas";
   }
+
+  public getContext(): CanvasRenderingContext2D {
+    return this.context;
+  }
 }
 
 export default MainCanvas;
