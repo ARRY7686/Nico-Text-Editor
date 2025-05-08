@@ -122,11 +122,11 @@ export class TextCanvas extends Canvas {
       } else {
         const { width } = this.context.measureText(char);
         if (highlight) {
-          Editor.mainCanvas.context.fillStyle = "blue";
+          Editor.mainCanvas.context.fillStyle = "#6195EE";
           Editor.mainCanvas.context.fillRect(
             x,
             y,
-            width,
+            width + 2,
             this.context.measureText("j").actualBoundingBoxDescent
           );
         } else {
