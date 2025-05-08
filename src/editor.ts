@@ -7,8 +7,8 @@ import CursorCanvas from "./core/canvases/CursorCanvas";
 
 class Editor {
   private font: Font = new Font();
-  private mainCanvas: MainCanvas;
-  private textCanvas: TextCanvas;
+  public static mainCanvas: MainCanvas;
+  public static textCanvas: TextCanvas;
   public static cursorCanvas: CursorCanvas;
   private scale: number = window.devicePixelRatio;
   private container: HTMLDivElement;
@@ -23,12 +23,12 @@ class Editor {
     Editor.cursorCanvas = new CursorCanvas(size);
     this.container.appendChild(Editor.cursorCanvas.canvas);
 
-    this.mainCanvas = new MainCanvas(size);
-    this.mainCanvas.setBackground("black");
-    this.container.appendChild(this.mainCanvas.canvas);
+    Editor.mainCanvas = new MainCanvas(size);
+    Editor.mainCanvas.setBackground("black");
+    this.container.appendChild(Editor.mainCanvas.canvas);
 
-    this.textCanvas = new TextCanvas(size);
-    this.container.appendChild(this.textCanvas.canvas);
+    Editor.textCanvas = new TextCanvas(size);
+    this.container.appendChild(Editor.textCanvas.canvas);
 
     this.attachEventListeners();
     this.setFont(this.font);
@@ -38,30 +38,30 @@ class Editor {
     this.container.addEventListener("keypress", (e) => {
       e.preventDefault();
       const event = new Event(EventType.KeyPress, e);
-      this.textCanvas.handleEvent(event);
+      Editor.textCanvas.handleEvent(event);
     });
     this.container.addEventListener("keydown", (e) => {
       e.preventDefault();
       const event = new Event(EventType.KeyPress, e);
-      this.textCanvas.handleEvent(event);
+      Editor.textCanvas.handleEvent(event);
     });
     this.container.addEventListener("contextmenu", (e) => {
       e.preventDefault();
       const event = new Event(EventType.MouseClick, e);
-      this.textCanvas.handleEvent(event);
+      Editor.textCanvas.handleEvent(event);
     });
     this.container.addEventListener("click", (e) => {
       const pos = getRelativeCoords(
         { x: e.clientX, y: e.clientY },
-        this.mainCanvas.canvas
+        Editor.mainCanvas.canvas
       );
 
-      this.textCanvas.moveCursorToPoint(pos);
+      Editor.textCanvas.moveCursorToPoint(pos);
     });
   }
 
   public setFont(font: Font) {
-    this.textCanvas.setFont(font);
+    Editor.textCanvas.setFont(font);
   }
 }
 

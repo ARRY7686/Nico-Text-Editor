@@ -45,9 +45,9 @@ class CursorCanvas extends Canvas {
           TextCanvas.gapBuffer.SetSelectionStart(end_idx);
           TextCanvas.gapBuffer.SetSelectionEnd(idx);
         } else {
-          console.log("Selection End: ", idx);
           TextCanvas.gapBuffer.SetSelectionEnd(end_idx);
         }
+        Editor.textCanvas.update();
       };
 
       this.canvas.addEventListener("mousemove", setSelectionEnd);
