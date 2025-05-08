@@ -16,6 +16,7 @@ As the project progresses, we might move toward a Rope data structure
 - Multi-line support
 - Cursor management using keyboard, mouse
 - Selections using mouse drags
+- Color system
 
 # Yet to implement
 - Cut, Copy, Paste actions
